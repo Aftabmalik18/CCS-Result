@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Result Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .header input {
+            margin: 5px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 30%;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        th {
+            background-color: #17a2b8;
+            color: white;
+        }
+        input {
+            width: 70px;
+            padding: 5px;
+            text-align: center;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .btn {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            width: 90%;
+            max-width: 300px;
+        }
+        .btn:hover {
+            background-color: #218838;
+        }
+        @media screen and (max-width: 600px) {
+            .header input {
+                width: 80%;
+            }
+            input {
+                width: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>Student Result Calculator</h2>
+        <input type="text" id="class" placeholder="Enter Class">
+        <input type="text" id="subject" placeholder="Enter Subject">
+        <input type="text" id="unit" placeholder="Enter Unit">
+    </div>
+
+    <div class="container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Roll No.</th>
+                    <th>Student Name</th>
+                    <th>Theory (20)</th>
+                    <th>Practical (10)</th>
+                    <th>Total (30)</th>
+                    <th>Percentage</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody id="studentTable">
+                <!-- 40 students will be inserted dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <button class="btn" onclick="calculateResults()">Calculate Results</button>
+    <button class="btn" onclick="downloadPDF()">Download PDF</button>
+
+    <script>
+        function generateTable() {
+            let table = document.getElementById("studentTable");
+            for (let i = 1; i <= 40; i++) {
+                let row = `<tr>
+                    <td>${i}</td>
+                    <td><input type="text" id="name${i}" placeholder="Student Name"></td>
+                    <td><input type="number" id="theory${i}" min="0" max="20"></td>
+                    <td><input type="number" id="practical${i}" min="0" max="10"></td>
+                    <td id="total${i}">-</td>
+                    <td id="percentage${i}">-</td>
+                    <td id="grade${i}">-</td>
+                </tr>`;
+                table.innerHTML += row;
+            }
+        }
+
+        function calculateResults() {
+            for (let i = 1; i <= 40; i++) {
+                let theory = document.getElementById(`theory${i}`).value || 0;
+                let practical = document.getElementById(`practical${i}`).value || 0;
+                let total = parseInt(theory) + parseInt(practical);
+                let percentage = ((total / 30) * 100).toFixed(2);
+                let grade = getGrade(total);
+
+                document.getElementById(`total${i}`).innerText = total;
+                document.getElementById(`percentage${i}`).innerText = percentage + "%";
+                document.getElementById(`grade${i}`).innerText = grade;
+            }
+        }
+
+        function getGrade(marks) {
+            if (marks >= 27) return "A1";
+            if (marks >= 24) return "A2";
+            if (marks >= 21) return "B1";
+            if (marks >= 18) return "B2";
+            if (marks >= 15) return "C1";
+            if (marks >= 12) return "C2";
+            if (marks >= 9) return "D";
+            return "E (Fail)";
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            let doc = new jsPDF();
+
+            let className = document.getElementById("class").value || "N/A";
+            let subject = document.getElementById("subject").value || "N/A";
+            let unit = document.getElementById("unit").value || "N/A";
+
+            doc.setFont("helvetica", "bold");
+            doc.text(`Class: ${className} | Subject: ${subject} | Unit: ${unit}`, 10, 10);
+            doc.text("Student Result Sheet", 60, 20);
+            
+            let yPos = 30;
+            doc.setFont("helvetica", "normal");
+
+            doc.text("Roll", 10, yPos);
+            doc.text("Name", 30, yPos);
+            doc.text("Theory", 90, yPos);
+            doc.text("Practical", 110, yPos);
+            doc.text("Total", 130, yPos);
+            doc.text("Percentage", 150, yPos);
+            doc.text("Grade", 180, yPos);
+
+            yPos += 10;
+
+            for (let i = 1; i <= 40; i++) {
+                let name = document.getElementById(`name${i}`).value || "N/A";
+                let theory = document.getElementById(`theory${i}`).value || "0";
+                let practical = document.getElementById(`practical${i}`).value || "0";
+                let total = document.getElementById(`total${i}`).innerText || "0";
+                let percentage = document.getElementById(`percentage${i}`).innerText || "0%";
+                let grade = document.getElementById(`grade${i}`).innerText || "N/A";
+
+                doc.text(`${i}`, 10, yPos);
+                doc.text(name, 30, yPos);
+                doc.text(theory, 90, yPos);
+                doc.text(practical, 110, yPos);
+                doc.text(total, 130, yPos);
+                doc.text(percentage, 150, yPos);
+                doc.text(grade, 180, yPos);
+
+                yPos += 10;
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+            }
+
+            doc.save(`Result_Class_${className}.pdf`);
+        }
+
+        generateTable();
+    </script>
+
+</body>
+</html>
